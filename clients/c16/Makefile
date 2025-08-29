@@ -13,7 +13,9 @@ TARGETS := c16
 
 # Name of the final, single-file executable.
 # Default: name of the current dir with target name appended
-PROGRAM := news 
+PROGRAM := news
+DIST_DIR := dist
+TARGET := $(DIST_DIR)/$(PROGRAM).prg
 
 # Path(s) to additional libraries required for linking the program
 # Use only if you don't want to place copies of the libraries in SRCDIR
@@ -27,7 +29,7 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  = -Oris 
+CFLAGS  = -Oris
 
 # Additional assembler flags and options.
 # Default: none
@@ -47,7 +49,7 @@ OBJDIR :=
 
 # Command used to run the emulator.
 # Default: depending on target platform. For default (c64) target: x64 -kernal kernal -VICIIdsize -autoload
-EMUCMD := xplus4 -model c16ntsc -autostart 
+EMUCMD := xplus4 -model c16ntsc -autostart
 
 # Optional commands used before starting the emulation process, and after finishing it.
 # Default: none
@@ -60,7 +62,7 @@ POSTEMUCMD :=
 
 # On Windows machines VICE emulators may not be available in the PATH by default.
 # In such case, please set the variable below to point to directory containing
-# VICE emulators. 
+# VICE emulators.
 #VICE_HOME := "C:\Program Files\WinVICE-2.2-x86\"
 VICE_HOME :=
 
@@ -286,6 +288,9 @@ CC65TARGET := $(firstword $(subst .,$(SPACE),$(TARGETLIST)))
 $(TARGETOBJDIR):
 	$(call MKDIR,$@)
 
+$(DIST_DIR):
+	$(call MKDIR,$@)
+
 vpath %.c $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 
 $(TARGETOBJDIR)/%.o: %.c | $(TARGETOBJDIR)
@@ -306,8 +311,10 @@ vpath %.a65 $(SRCDIR)/$(TARGETLIST) $(SRCDIR)
 $(TARGETOBJDIR)/%.o: %.a65 | $(TARGETOBJDIR)
 	$(CC) -t $(CC65TARGET) -c --create-dep $(@:.o=.d) $(ASFLAGS) -o $@ $<
 
-$(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
+$(TARGET): $(CONFIG) $(OBJECTS) $(LIBS) | $(DIST_DIR)
 	$(CC) -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
+
+disk: $(TARGET)
 
 test: $(PROGRAM)
 	$(PREEMUCMD)
